@@ -1,0 +1,82 @@
+#To create a sinusoidal wave we use the below equations as we deduce them we get the usable equation
+
+# psi(x, t) = A* Sin((k)(x) +- (omega)(t) + pi)
+#psi(x, t) = A* Sin(2*pi*t/lambda)
+# 1 / wavelength = frequency
+
+import numpy as np #numpy library is used to do the numerical calculations.
+import matplotlib.pyplot as plt # matplotlib is to plot the graph using the generated range of coordinates.
+from scipy.signal import butter, filtfilt # filter library Butterworth filter.
+
+
+frequency = 1 # given in the question
+amplitude = 1 # given in the question
+sampling_rate = 100 
+duration = 7
+
+#normal signal
+
+time = np.linspace(0, duration, duration * sampling_rate, endpoint = False)
+sinusoidal_signal = amplitude * np.sin(2 * np.pi * frequency * time)
+
+#noise
+
+noise = np.random.normal(0, 0.5, sinusoidal_signal.shape)
+
+
+# Create the noisy signal
+
+noisy_signal = sinusoidal_signal + noise
+
+# Butterworth filter design
+def butter_lowpass(cutoff, fs, order=5):
+    nyquist = 0.5 * fs
+    normal_cutoff = cutoff / nyquist
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
+
+# Apply the filter
+def butter_lowpass_filter(data, cutoff, fs, order=5):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = filtfilt(b, a, data)
+    return y
+
+# Filter requirements
+order = 5
+cutoff = 2  # desired cutoff frequency of the filter, Hz
+
+# Apply low-pass filter to the noisy signal
+filtered_signal = butter_lowpass_filter(noisy_signal, cutoff, sampling_rate, order)
+
+    
+#Plot the sinusoidal_signal
+
+plt.subplot(3, 1, 1)
+plt.plot(time, sinusoidal_signal)
+plt.title('Sinusoidal Signal')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.grid(True)
+plt.show()
+
+
+# Plot noisy signal
+plt.subplot(3, 1, 2)
+plt.plot(time, noisy_signal, label='Noisy Signal')
+plt.title('Noisy Sinusoidal Signal')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.legend()
+plt.grid()
+
+# Plot filtered signal
+plt.subplot(3, 1, 3)
+plt.plot(time, filtered_signal, label='Filtered Signal', color='orange')
+plt.title('Filtered Signal')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.legend()
+plt.grid()
+
+plt.tight_layout()
+plt.show()
